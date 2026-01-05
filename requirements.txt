@@ -1,0 +1,38 @@
+# Pinned requirements for 01_AIrizap (from your pip freeze)
+# Core app
+streamlit==1.52.2
+chromadb==1.4.0
+
+# LangChain and Chroma integration
+langchain==1.2.0
+langchain-core==1.2.5
+langchain-openai==1.1.6
+langchain-chroma==1.1.0
+
+# OpenAI & tokenizers
+openai==2.14.0
+tiktoken==0.12.0
+
+# Environment variables
+python-dotenv==1.2.1
+
+# PDF and text processing
+pdfplumber==0.11.8
+langchain-text-splitters==1.1.0
+
+# Images and scientific
+pillow==12.0.0
+numpy==2.4.0
+
+# Multimodal / CLIP & PyTorch
+open_clip_torch==3.2.0
+torch==2.9.1
+torchvision==0.24.1
+
+# Optional / dev
+ipython
+ipykernel
+
+# Notes:
+# - If you want strict reproducibility, I can also pin transitive deps (e.g., httpx, numpy subversions).
+# - Let me know if you'd like version ranges instead of exact pins (e.g., 'streamlit>=1.52,<1.53').
