@@ -1,0 +1,31 @@
+@startuml
+
+actor user
+participant streamlit
+participant chroma
+participant llm
+
+
+streamlit -> chroma: クローマのセットアップ
+chroma --> streamlit: コレクション（RDBでいうテーブルのこと）の接続
+
+user -> streamlit: チャットで質問
+
+streamlit -> chroma: ユーザー入力の内容でテキストを検索
+chroma --> streamlit: 検索結果のテキスト（コサイン類似度上位5件）
+
+streamlit -> chroma: ユーザー入力の内容で画像を検索
+chroma --> streamlit: 検索結果の画像パス（コサイン類似度上位3件）
+
+loop 取得した3件の画像ごとにキャプション生成
+  streamlit -> llm: 画像パスから画像を指定し、キャプション生成指示
+  llm --> streamlit: 画像キャプション
+end
+
+streamlit -> llm: [ユーザー入力・テキスト検索結果・画像キャプション]を入力し、応答生成指示
+llm --> streamlit: 応答テキスト
+
+streamlit -> user: LLMの応答テキストの表示
+streamlit -> user: 画像パスから画像の表示
+
+@enduml

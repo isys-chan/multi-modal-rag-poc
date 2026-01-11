@@ -1,4 +1,12 @@
 import os
+# Hugging Face の Xet/CAS 経由を無効化
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+
+# 余計な高速転送も切る（環境によって不安定要因）
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+
+# タイムアウトを延ばす（ネットワークが遅い環境向け）
+os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"
 import streamlit as st
 import chromadb
 import langchain
