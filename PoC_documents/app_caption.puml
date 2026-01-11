@@ -2,8 +2,8 @@
 
 actor user
 participant streamlit
-participant chroma
-participant llm
+participant chroma as "ChromaDB"
+participant llm as "GPT-5.2"
 
 
 streamlit -> chroma: クローマのセットアップ
