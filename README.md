@@ -1,7 +1,8 @@
 # AI RIZAP：マルチモーダルRAG PoC
 
 ## 概要
-本リポジトリは、マルチモーダル（テキスト/画像）を利用した **RAG（Retrieval-Augmented Generation）** のPoCです。  
+本リポジトリは、マルチモーダル（テキスト/画像）を利用した **RAG（Retrieval-Augmented Generation）** のPoCです。 
+お題として、株式会社ベイカレントのIR情報について回答してくれるチャットボットを作成しました。
 ドキュメントを取り込み、埋め込み（Embedding）と検索（Retrieval）を行い、**画像とテキストを組み合わせた応答**や、**画像キャプション生成**を試験することを目的としています。
 
 **最終的な検証結果は[./PoC_documents/PoC_検証結果](./Poc_documents/PoC_検証結果.md)に格納しています。結論が知りたい方はそちらへ**
