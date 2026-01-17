@@ -1,4 +1,6 @@
 import os
+
+# 会社PCで動かすためのおまじない
 # Hugging Face の Xet/CAS 経由を無効化
 os.environ["HF_HUB_DISABLE_XET"] = "1"
 
@@ -7,6 +9,8 @@ os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 
 # タイムアウトを延ばす（ネットワークが遅い環境向け）
 os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"
+# 会社PCで動かすためのおまじないここまで
+
 import streamlit as st
 import chromadb
 import base64
@@ -19,6 +23,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 
 
+# アプリのUIを初期化し、RAGと画像キャプションを使った応答を生成して表示する
 def main():
     st.set_page_config(page_title="ベxxxxト2025年IRチャットボット", page_icon=":robot_face:")
     st.header("ベxxxxト2025年IRチャットボット")
@@ -27,36 +32,34 @@ def main():
     # Chromaクライアントのセットアップ
     chroma_collection = set_chroma_client()
 
-    if user_input:
-        st.chat_message("user").write(user_input)
+    if user_input: # ユーザー入力がある場合のみ処理
+        st.chat_message("user").write(user_input) # ユーザーの質問をチャットに表示
 
         # RAGの呼び出し
         rag_response = text_rag(chroma_collection, user_input)
 
         # 画像RAGの呼び出し
         image_responses = image_rag(chroma_collection, user_input)
-            # デバグ用　st.write(image_responses)
 
         # 画像の説明文を取得してRAGレスポンスに追加
-        image_captions = ""
-        for image in image_responses:
-            r_image_path = fr"{image}"
-            caption = caption_image(r_image_path)
-            image_captions += f"\n画像説明: {caption}" 
-            # デバグ用　st.write(image_captions)
+        image_captions = "" # 画像説明文を格納する変数
+        for image in image_responses: # 取得した画像パスごとに処理
+            r_image_path = fr"{image}" # 生画像パス
+            caption = caption_image(r_image_path) # 画像キャプション生成関数を呼び出し
+            image_captions += f"\n画像説明: {caption}"  # 説明文を連結していく
 
         # LLMの呼び出し
-        llm_response = response_generator(user_input, rag_response, image_captions)
+        llm_response = response_generator(user_input, rag_response, image_captions) # ユーザー入力、RAGレスポンス、画像説明文を渡す
 
         # チャットに回答を表示
         st.chat_message("assistant").write(llm_response)
 
         # 画像RAGの回答も表示
-        for image in image_responses:
+        for image in image_responses: # 取得した画像パスごとに処理
             st.chat_message("assistant").image(image)
 
 
-# RAG検索先のChroma DBクライアントをセットアップ
+# Chroma DBのクライアントとコレクションを設定して取得する
 def set_chroma_client():
     chroma_client = chromadb.PersistentClient(path="./chroma_db")
     data_loader = ImageLoader() # OpenCLIPでは直接画像をChroma DBに保存しない。そのため、URI指定で生画像を持ってきてくれるImage Loaderを使用する。
@@ -70,6 +73,7 @@ def set_chroma_client():
     return collection
 
 
+# テキスト検索のRAGで関連ドキュメントを取得し、結合して文字列として返す
 def text_rag(collection, user_input) -> str:
     results = collection.query(
         query_texts=[user_input], 
@@ -87,12 +91,13 @@ def text_rag(collection, user_input) -> str:
     return response
 
 
+# 画像検索のRAGで関連画像パスを取得して返す
 def image_rag(collection, user_input) -> list:
     results = collection.query(
         query_texts=[user_input], 
         n_results=3, # 返す件数
         include=["documents","data"], # 返す内容指定. dataを入れるとData loaderが自動的に呼び出され、（画像などの）データも返す。
-        where={"modality": "image"} # 画像データのみ絞り込み
+        where={"modality": "image"} # 画像データのみ抽出するよう絞り込み
     )
     docs = results["documents"]
 
@@ -103,7 +108,7 @@ def image_rag(collection, user_input) -> list:
     return image_paths
 
 
-# TODO:キャプション生成の関数を追加
+# 画像パスをMIME付きのdata URLに変換する
 def _image_path_to_data_url(image_path: str | Path) -> str:
     """画像ファイルを base64 の data URL に変換（MIME 自動判定）"""
     path = Path(image_path)
@@ -120,6 +125,7 @@ def _image_path_to_data_url(image_path: str | Path) -> str:
     return f"data:{mime_type};base64,{b64}"
 
 
+# 画像をLLMに渡してキャプションを生成する
 def caption_image(image_path: str) -> str:
     """
     インプット: 画像パス（例: r".\\.image\\xxxxx.png"）
@@ -153,9 +159,10 @@ def caption_image(image_path: str) -> str:
     return result.content.strip()
 
 
+# プロンプトとLLMで最終応答を生成して返す
 def response_generator(user_input: str, rag_response: str, image_captions: str) -> str:
-    prompt = prompt_bay_ir_2025()
-    llm = set_llm()
+    prompt = prompt_bay_ir_2025()# 下で定義
+    llm = set_llm()# 下で定義
     chain = prompt | llm
 
     response = chain.invoke(
@@ -169,6 +176,7 @@ def response_generator(user_input: str, rag_response: str, image_captions: str) 
     return response.content
 
 
+# Bay IR 2025用のプロンプトテンプレートを作成する
 def prompt_bay_ir_2025():
     prompt = PromptTemplate(
         input_variables=["user_input", "rag_input", "image_captions"],
@@ -187,6 +195,7 @@ def prompt_bay_ir_2025():
     return prompt
 
 
+# LLM設定を行い、ChatOpenAIインスタンスを返す
 def set_llm():
     llm = ChatOpenAI(model_name="gpt-5.2", 
                      temperature=0, 
@@ -194,6 +203,8 @@ def set_llm():
                     )
     return llm
 
+
+# エントリーポイント
 if __name__ == "__main__":
     load_dotenv()
     main()
